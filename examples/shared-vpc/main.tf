@@ -16,13 +16,11 @@
 
 provider "google" {
   project = var.service_project
-  version = "~> 2.7.0"
   region  = var.region
 }
 
 provider "google-beta" {
   project = var.service_project
-  version = "~> 2.7.0"
   region  = var.region
 }
 

@@ -57,7 +57,9 @@ variable "target_tags" {
 
 variable "backends" {
   description = "Map backend indices to list of backend maps."
-  type        = map(list(map(string)))
+  type        = map(list(object({
+    group = string
+  })))
 }
 
 variable "backend_params" {

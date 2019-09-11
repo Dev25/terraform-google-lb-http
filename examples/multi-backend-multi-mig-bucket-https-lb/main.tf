@@ -14,58 +14,12 @@
  * limitations under the License.
  */
 
-variable "group1_region" {
-  default = "us-west1"
-}
-
-variable "group1_zone" {
-  default = "us-west1-a"
-}
-
-variable "group2_region" {
-  default = "us-central1"
-}
-
-variable "group2_zone" {
-  default = "us-central1-f"
-}
-
-variable "group3_region" {
-  default = "us-east1"
-}
-
-variable "group3_zone" {
-  default = "us-east1-b"
-}
-
-variable "network_name" {
-  default = "ml-bk-ml-mig-bkt-s-lb"
-}
-
-variable "service_account" {
-  type    = object({
-    email  = string,
-    scopes = list(string)
-  })
-  default = {
-    email  = ""
-    scopes = [
-      "cloud-platform"]
-  }
-}
-
-variable "project" {
-  type = string
-}
-
 provider "google" {
   project = var.project
-  version = "~> 2.7.0"
 }
 
 provider "google-beta" {
   project = var.project
-  version = "~> 2.7.0"
 }
 
 resource "google_compute_network" "default" {
@@ -284,24 +238,4 @@ resource "google_storage_object_acl" "image-acl" {
   bucket         = google_storage_bucket.assets.name
   object         = google_storage_bucket_object.image.name
   predefined_acl = "publicRead"
-}
-
-output "group1_region" {
-  value = var.group1_region
-}
-
-output "group2_region" {
-  value = var.group2_region
-}
-
-output "group3_region" {
-  value = var.group3_region
-}
-
-output "load-balancer-ip" {
-  value = module.gce-lb-https.external_ip
-}
-
-output "asset-url" {
-  value = "https://${module.gce-lb-https.external_ip}/assets/gcp-logo.svg"
 }

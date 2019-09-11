@@ -14,47 +14,17 @@
  * limitations under the License.
  */
 
-variable "region" {
-  default = "us-west1"
-}
-
-variable "zone" {
-  default = "us-west1-b"
-}
-
-variable "network_name" {
-  default = "tf-lb-http-mig-nat"
-}
-
-variable "service_account" {
-  type    = object({
-    email  = string,
-    scopes = list(string)
-  })
-  default = {
-    email  = ""
-    scopes = [
-      "cloud-platform"]
-  }
-}
-
-variable "project" {
-  type    = string
-}
-
 provider "google" {
   project = var.project
-  version = "~> 2.7.0"
 }
 
 provider "google-beta" {
   project = var.project
-  version = "~> 2.7.0"
 }
 
 resource "google_compute_network" "default" {
   name                    = var.network_name
-  auto_create_subnetworks = "false"
+  auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "default" {
@@ -138,8 +108,4 @@ module "gce-lb-http" {
     // health check path, port name, port number, timeout seconds.
     "/,http,80,10",
   ]
-}
-
-output "load-balancer-ip" {
-  value = module.gce-lb-http.external_ip
 }

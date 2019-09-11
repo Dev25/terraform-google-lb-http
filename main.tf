@@ -21,8 +21,6 @@ resource "google_compute_global_forwarding_rule" "http" {
   target     = google_compute_target_http_proxy.default[0].self_link
   ip_address = google_compute_global_address.default.address
   port_range = "80"
-  depends_on = [
-    google_compute_global_address.default]
 }
 
 resource "google_compute_global_forwarding_rule" "https" {
@@ -32,8 +30,6 @@ resource "google_compute_global_forwarding_rule" "https" {
   target     = google_compute_target_https_proxy.default[0].self_link
   ip_address = google_compute_global_address.default.address
   port_range = "443"
-  depends_on = [
-    google_compute_global_address.default]
 }
 
 resource "google_compute_global_address" "default" {
@@ -66,7 +62,7 @@ resource "google_compute_target_https_proxy" "default" {
 
 resource "google_compute_ssl_certificate" "default" {
   project     = var.project
-  count       = var.ssl && false == var.use_ssl_certificates ? 1 : 0
+  count       = var.ssl && !var.use_ssl_certificates ? 1 : 0
   name_prefix = "${var.name}-certificate-"
   private_key = var.private_key
   certificate = var.certificate
@@ -118,9 +114,8 @@ resource "google_compute_http_health_check" "default" {
   port         = split(",", var.backend_params[count.index])[2]
 }
 
-# Create firewall rule for each backend in each network specified, uses mod behavior of element().
 resource "google_compute_firewall" "default-hc" {
-  count         = length(var.firewall_networks) == 1 ? length(var.firewall_networks) * length(distinct(var.backend_params)) : length(var.firewall_networks) * length(var.backend_params)
+  count         = length(var.firewall_networks)
   project       = length(var.firewall_networks) == 1 && var.firewall_projects[0] == "default" ? var.project : var.firewall_projects[count.index]
   name          = "${var.name}-hc-${count.index}"
   network       = length(var.firewall_networks) == 1 ? var.firewall_networks[0] : var.firewall_networks[count.index]
