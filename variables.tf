@@ -25,6 +25,12 @@ variable "region" {
   default     = "us-central1"
 }
 
+variable "create_address" {
+  type        = bool
+  description = "Create a new global address"
+  default     = true
+}
+
 variable "ip_version" {
   description = "IP version for the Global address (IPv4 or v6) - Empty defaults to IPV4"
   type        = string
@@ -34,15 +40,15 @@ variable "ip_version" {
 variable "firewall_networks" {
   description = "Names of the networks to create firewall rules in"
   type        = list(string)
-  default     = [
-    "default"]
+  default = [
+  "default"]
 }
 
 variable "firewall_projects" {
   description = "Names of the projects to create firewall rules in"
   type        = list(string)
-  default     = [
-    "default"]
+  default = [
+  "default"]
 }
 
 variable "name" {
@@ -57,19 +63,7 @@ variable "target_tags" {
 
 variable "backends" {
   description = "Map backend indices to list of backend maps."
-  type        = map(list(object({
-    group = string
-  })))
-}
-
-variable "backend_params" {
-  description = "Comma-separated encoded list of parameters in order: health check path, service port name, service port, backend timeout seconds"
-  type        = list(string)
-}
-
-variable "backend_protocol" {
-  description = "The protocol with which to talk to the backend service"
-  default     = "HTTP"
+  type        = map
 }
 
 variable "create_url_map" {
@@ -94,6 +88,12 @@ variable "ssl" {
   description = "Set to `true` to enable SSL support, requires variable `ssl_certificates` - a list of self_link certs"
   type        = bool
   default     = false
+}
+
+variable "ssl_policy" {
+  type        = string
+  description = "Selfink to SSL Policy"
+  default     = null
 }
 
 variable "private_key" {
