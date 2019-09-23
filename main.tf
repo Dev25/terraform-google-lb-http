@@ -132,13 +132,13 @@ resource "google_compute_health_check" "default" {
   project  = var.project
   name     = "${var.name}-backend-${each.key}"
 
-  check_interval_sec  = lookup(each.value, "check_interval_sec", 5)
-  timeout_sec         = lookup(each.value, "timeout_sec", 3)
-  healthy_threshold   = lookup(each.value, "healthy_threshold", 1)
-  unhealthy_threshold = lookup(each.value, "unhealthy_threshold", 3)
+  check_interval_sec  = lookup(each.value["health_check"], "check_interval_sec", 5)
+  timeout_sec         = lookup(each.value["health_check"], "timeout_sec", 5)
+  healthy_threshold   = lookup(each.value["health_check"], "healthy_threshold", 2)
+  unhealthy_threshold = lookup(each.value["health_check"], "unhealthy_threshold", 2)
 
   dynamic "http_health_check" {
-    for_each = [lookup(each.value, "http_health_check", {})]
+    for_each = lookup(each.value["health_check"], "http_health_check", {}) == {} ? [] : [each.value["health_check"]["http_health_check"]]
     content {
       host         = lookup(http_health_check.value, "host", null)
       request_path = lookup(http_health_check.value, "request_path", null)
@@ -151,8 +151,7 @@ resource "google_compute_health_check" "default" {
   }
 
   dynamic "https_health_check" {
-    for_each = lookup(each.value, "https_health_check", {})
-
+    for_each = lookup(each.value["health_check"], "https_health_check", {}) == {} ? [] : [each.value["health_check"]["https_health_check"]]
 
     content {
       host         = lookup(https_health_check.value, "host", null)
@@ -162,6 +161,20 @@ resource "google_compute_health_check" "default" {
       port               = lookup(https_health_check.value, "port", null)
       port_name          = lookup(https_health_check.value, "port_name", null)
       port_specification = lookup(https_health_check.value, "port_specification", null)
+    }
+  }
+
+  dynamic "http2_health_check" {
+    for_each = lookup(each.value["health_check"], "http2_health_check", {}) == {} ? [] : [each.value["health_check"]["http2_health_check"]]
+
+    content {
+      host         = lookup(http2_health_check.value, "host", null)
+      request_path = lookup(http2_health_check.value, "request_path", null)
+      response     = lookup(http2_health_check.value, "response", null)
+
+      port               = lookup(http2_health_check.value, "port", null)
+      port_name          = lookup(http2_health_check.value, "port_name", null)
+      port_specification = lookup(http2_health_check.value, "port_specification", null)
     }
   }
 
