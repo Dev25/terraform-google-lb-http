@@ -31,6 +31,13 @@ variable "create_address" {
   default     = true
 }
 
+variable "address" {
+  type        = string
+  description = "IP address self link"
+  default     = null
+}
+
+
 variable "ip_version" {
   description = "IP version for the Global address (IPv4 or v6) - Empty defaults to IPV4"
   type        = string
@@ -93,6 +100,12 @@ variable "ssl" {
 variable "ssl_policy" {
   type        = string
   description = "Selfink to SSL Policy"
+  default     = null
+}
+
+variable "quic" {
+  type        = bool
+  description = "Set to `true` to enable QUIC support"
   default     = null
 }
 

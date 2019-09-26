@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
+
+locals {
+  address = var.create_address ? google_compute_global_address.default[0].address : var.address
+  url_map = var.create_url_map ? google_compute_url_map.default[0].self_link : var.url_map
+}
+
 resource "google_compute_global_forwarding_rule" "http" {
   project    = var.project
   count      = var.http_forward ? 1 : 0
   name       = var.name
   target     = google_compute_target_http_proxy.default[0].self_link
-  ip_address = google_compute_global_address.default[0].address
+  ip_address = local.address
   port_range = "80"
 }
 
@@ -28,7 +34,7 @@ resource "google_compute_global_forwarding_rule" "https" {
   count      = var.ssl ? 1 : 0
   name       = "${var.name}-https"
   target     = google_compute_target_https_proxy.default[0].self_link
-  ip_address = google_compute_global_address.default[0].address
+  ip_address = local.address
   port_range = "443"
 }
 
@@ -44,18 +50,19 @@ resource "google_compute_target_http_proxy" "default" {
   project = var.project
   count   = var.http_forward ? 1 : 0
   name    = "${var.name}-http-proxy"
-  url_map = compact(concat([var.url_map], google_compute_url_map.default.*.self_link), )[0]
+  url_map = local.url_map
 }
 
 # HTTPS proxy  when ssl is true
 resource "google_compute_target_https_proxy" "default" {
-  project          = var.project
-  count            = var.ssl ? 1 : 0
-  name             = "${var.name}-https-proxy"
-  url_map          = compact(concat([var.url_map], google_compute_url_map.default.*.self_link), )[0]
+  project = var.project
+  count   = var.ssl ? 1 : 0
+  name    = "${var.name}-https-proxy"
+  url_map = local.url_map
+
   ssl_certificates = compact(concat(var.ssl_certificates, google_compute_ssl_certificate.default.*.self_link, ), )
   ssl_policy       = var.ssl_policy
-  # quic_override
+  quic_override    = var.quic ? "ENABLE" : "NONE"
 }
 
 resource "google_compute_ssl_certificate" "default" {
@@ -93,7 +100,7 @@ resource "google_compute_backend_service" "default" {
   security_policy = var.security_policy
 
   dynamic "backend" {
-    for_each = each.value["groups"]
+    for_each = toset(each.value["groups"])
     content {
       balancing_mode               = lookup(backend.value, "balancing_mode", null)
       capacity_scaler              = lookup(backend.value, "capacity_scaler", null)
@@ -111,10 +118,8 @@ resource "google_compute_backend_service" "default" {
 
   #  dynamic "cdn_policy" {
   #   for_each = [lookup(each.value, "cdn_policy", {})]
-
   #   content {
-  #     signed_url_cache_max_age_sec = null
-
+  #     signed_url_cache_max_age_sec = cdn_policy.value.signed_url_cache_max_age_sec
   #     dynamic "cache_key_policy" {
   #       for_each =  [lookup(cdn_policy.value, "cache_key_policy", {})]
   #       content {
@@ -124,7 +129,9 @@ resource "google_compute_backend_service" "default" {
   #   }
   # }
 
-
+  depends_on = [
+    google_compute_health_check.default
+  ]
 }
 
 resource "google_compute_health_check" "default" {
