@@ -91,13 +91,14 @@ resource "google_compute_backend_service" "default" {
   project = var.project
   name    = "${var.name}-backend-${each.key}"
 
-  port_name   = lookup(each.value, "port_name", null)
-  protocol    = lookup(each.value, "protocol", null)
-  timeout_sec = lookup(each.value, "timeout_sec", null)
-
-  health_checks   = [google_compute_health_check.default[each.key].self_link]
-  enable_cdn      = lookup(each.value, "enable_cdn", false)
-  security_policy = var.security_policy
+  port_name                       = each.value.port_name
+  protocol                        = each.value.protocol
+  timeout_sec                     = lookup(each.value, "timeout_sec", null)
+  description                     = lookup(each.value, "description", null)
+  connection_draining_timeout_sec = lookup(each.value, "connection_draining_timeout_sec", null)
+  enable_cdn                      = lookup(each.value, "enable_cdn", false)
+  security_policy                 = var.security_policy
+  health_checks                   = [google_compute_health_check.default[each.key].self_link]
 
   dynamic "backend" {
     for_each = toset(each.value["groups"])
